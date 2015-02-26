@@ -1,13 +1,19 @@
 var express = require('express');
-var app = express();
-
-app.set('port', (process.env.OPENSHIFT_NODEJS_PORT || 5000));
-app.use(express.static(__dirname + '/public'));
+var app = express(), 
+    server = require('http').createServer(app)
+    , io     = require('socket.io').listen(server)
+    , connect = require('connect')
+    , pg     = require('pg')
+    , Client = pg.Client;
 
 app.get('/', function(request, response) {
   response.send('Testing nitrous.io - Openshift Integration');
 });
 
-app.listen(app.get('port'), function() {
-  console.log("Node app is running at localhost:" + app.get('port'));
+
+
+var ipaddress = process.env.OPENSHIFT_NODEJS_IP || "127.0.0.1";
+var port = process.env.OPENSHIFT_NODEJS_PORT || 8080;
+server.listen( port, ipaddress, function() {
+    console.log((new Date()) + ' Server is listening on port 8080');
 });
