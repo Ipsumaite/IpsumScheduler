@@ -1,3 +1,0 @@
-# Openshift background server
-
-
