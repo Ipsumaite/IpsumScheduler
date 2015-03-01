@@ -11,8 +11,8 @@ var logger,
         colorize: true
     }),
     ptTransport = new Papertrail({
-        host: process.env.loggerhost,
-        port: process.env.loggerport,
+        host: process.env.OPENSHIFT_loggerhost,
+        port: process.env.OPENSHIFT_loggerport,
         colorize: true,
         hostname: os.hostname(),
         level: 'debug',
