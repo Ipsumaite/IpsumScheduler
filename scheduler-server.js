@@ -7,7 +7,18 @@ var app = express(),
     , logger = require('./services/logger.js')
     , httpRes = require('./services/HTTPresponse.js')
     , Client = pg.Client
-    , cycle = require('./scheduler/cycle.js').running();
+    , cycle = require('./scheduler/cycle.js'),
+    every = require('schedule').every;
+
+
+cycle.readsubscriptions();
+var subsrate= process.env.SFPERIOD+"s";
+
+every(subsrate).do(function() {
+  cycle.readsubscriptions();
+});
+cycle.running();
+cycle.streams();
 
 app.get('/', function(req, res) {
    httpRes.resFast(res, ' Running Ipsum Scheduler on Openshift. ', 200);
