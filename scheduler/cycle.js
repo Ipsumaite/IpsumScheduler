@@ -88,26 +88,31 @@ exports.streams=function(){
                  var streamcontents = accounts[account].contents; 
                  var timediff = Math.round((Date.now()-beacon.date)/(1000*60));
                  logger.logMessage("For user "+ account + "/"+ beacon.email+ " date difference since last activation report in minutes: "+timediff);
+                 if (timediff < parseInt(process.env.STREAMTIMEOUT)){
 
-                 //check for each account what were the subscriptios and for each subscribed channel copy the contents
-                 subscriptions.forEach(function (subscription){
-                   if (subscription.AccountId == account){
-                      logger.logMessage(" Found subscribed channel " + subscription.Channel + " for account " + account + "/"+ beacon.email );
-                      
-                      if (streamcontents !== undefined){
-                        myRef.child(account+"/contents").remove();
-                      }
-                     // Check channels to add contents, if channel match with subscription just clone data into stream
-                     contents.forEach(function (channel){
-                       if (channel.Id == subscription.Channel){
-                         myRef.child(account+"/contents").set(
-                           channel.contents
-                         );
-                       }
-                     });
-                     
-                   }
-                 });
+                   //check for each account what were the subscriptios and for each subscribed channel copy the contents
+                   subscriptions.forEach(function (subscription){
+                     if (subscription.AccountId == account){
+                        logger.logMessage(" Found subscribed channel " + subscription.Channel + " for account " + account + "/"+ beacon.email );
+
+                        if (streamcontents !== undefined){
+                          myRef.child(account+"/contents").remove();
+                        }
+                       // Check channels to add contents, if channel match with subscription just clone data into stream
+                       contents.forEach(function (channel){
+                         if (channel.Id == subscription.Channel){
+                           myRef.child(account+"/contents").set(
+                             channel.contents
+                           );
+                         }
+                       });
+
+                     }
+                   });
+                 }else{ //Remove Account from streams caused by timeout
+                    logger.logMessage("Removed stream "+ account + "/"+ beacon.email+ " for activation timeout ");
+                    myRef.child(account).remove();
+                 }
 
               
              }
