@@ -5,7 +5,7 @@ var Firebase = require('firebase'),
     every = require('schedule').every;
 
 
-
+var activestreams = false;
 
 var myChannelRef = new Firebase(process.env.FIREBASEURL+"/channels");
 var publishrate= process.env.PERIOD+"s";
@@ -17,8 +17,8 @@ var subscriptionsShadow = [];
 exports.readsubscriptions=function(){
   
   var strSOQL='SELECT Channel__c ,ContractNumber, AccountId FROM Contract  WHERE SpecialTerms  not in (\'Canceled\')';
-  logger.logMessage("Reading Subscriptions");  
-                  
+  logger.logMessage("Reading Subscriptions");
+  if (activestreams){                  
                    while (subscriptionsShadow.pop()) {}
                    sfWrapper.querySOQL(strSOQL, function (errorSubs, resultSubs) {
                           if (errorSubs){
@@ -35,14 +35,15 @@ exports.readsubscriptions=function(){
                                   }
                                 );
 
-                              }
-                              if (subscriptionsShadow.length>0){
+                            }
+                            if (subscriptionsShadow.length>0){
                                 while (subscriptions.pop()) {}
                                 subscriptions = subscriptionsShadow.slice();
-                              }
-                              logger.logMessage(" Loaded "+subscriptions.length + " subscriptions");
+                            }
+                            logger.logMessage(" Loaded "+subscriptions.length + " subscriptions");
                           }
                    });
+  }
 }
 
 // Puts contents in memory
@@ -78,10 +79,13 @@ exports.streams=function(){
     every(publishrate).do(function() {
       var d = new Date();
       logger.logMessage("Checking all streams again... ");
-
+      
       myRef.once("value", function(snapshot) {
+          activestreams = false;
           if (snapshot.val()){
+            activestreams = true;
             var accounts = snapshot.val();
+            
 
             for (var account in accounts) {
                  var beacon =  accounts[account].beacon;
@@ -113,9 +117,10 @@ exports.streams=function(){
                     logger.logMessage("Removed stream "+ account + "/"+ beacon.email+ " for activation timeout ");
                     myRef.child(account).remove();
                  }
-
-              
+             
              }
+          }else{
+             logger.logMessage("-->No active streams running");
           }
       });
   });
